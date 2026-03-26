@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,12 +57,15 @@ fun WheelItem(name: String, onItemClick: () -> Unit, onDelete: () -> Unit) {
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
     ) {
         ListItem(
-            modifier = Modifier.clickable{onItemClick.invoke()},
+            modifier = Modifier
+                .clickable{onItemClick.invoke()}
+                .testTag("list_item"),
             colors = ListItemDefaults.colors(
                 containerColor = androidx.compose.ui.graphics.Color.Transparent
             ),
             headlineContent = {
                 Text(
+                    modifier = Modifier.testTag("list_item_text"),
                     text = name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
@@ -71,8 +75,9 @@ fun WheelItem(name: String, onItemClick: () -> Unit, onDelete: () -> Unit) {
             trailingContent = {
                 IconButton(onClick = onDelete) {
                     Icon(
+                        modifier = Modifier.testTag("list_item_delete_button"),
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Usuń",
+                        contentDescription = "Delete",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }

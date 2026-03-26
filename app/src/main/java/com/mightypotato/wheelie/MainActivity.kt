@@ -1,89 +1,85 @@
 package com.mightypotato.wheelie
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import com.mightypotato.wheelie.ui.component.list.WheelList
+import androidx.compose.material3.SnackbarHostState
+import com.mightypotato.wheelie.ui.screen.WheelsScreen
 import com.mightypotato.wheelie.ui.theme.AppTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
+/**
+ * The main entry point of the Wheelie application.
+ *
+ * This activity displays a list of "Wheels" and provides a Floating Action Button (FAB)
+ * to add new wheels. It handles the primary UI layout using Jetpack Compose and
+ * manages simple snackbar notifications for user interactions.
+ */
 class MainActivity : ComponentActivity() {
 
-    /**
-     * Hardcoded wheel items
-     */
-    val wheels = listOf(
-        "Koło Fortuny",
-        "Koło Gospodyń Wiejskich",
-        "Koło Zębate",
-        "Koło Ratunkowe",
-        "Koło Rowerowe",
-        "Koło Samochodowe"
-    )
+    companion object {
+        /**
+         * A hardcoded list of wheel names used to populate the initial UI state.
+         */
+        val wheels = listOf(
+            "Koło Fortuny",
+            "Koło Gospodyń Wiejskich",
+            "Koło Zębate",
+            "Koło Ratunkowe",
+            "Koło Rowerowe",
+            "Koło Samochodowe"
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         setContent {
             AppTheme {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    floatingActionButton = {
-                        FloatingActionButton(onClick = { onAddWheelButtonClick() }) {
-                            Icon(Icons.Filled.Add, "Add wheel button")
-                        }
-                    }
-                ) { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .fillMaxSize()
-                    ) {
-                        Text(
-                            text = "Wheels",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            modifier = Modifier
-                                .padding(horizontal = 24.dp)
-                                .padding(top = 24.dp)
-                        )
-                        WheelList(
-                            wheelNames = wheels,
-                            modifier = Modifier.padding(innerPadding),
-                            onItemClick = { name -> onItemClick(name) },
-                            onDeleteClick = { name -> onDeleteItemCLick(name) }
-                        )
-                    }
-                }
+                WheelsScreen(
+                    wheelList = wheels,
+                    onAddWheelClick = ::onAddWheelButtonClick,
+                    onItemClick = ::onItemClick,
+                    onDeleteItemClick = ::onDeleteItemCLick
+                )
             }
         }
     }
 
-    private fun onAddWheelButtonClick() {
-        Toast.makeText(this, "Not implemented yet.", Toast.LENGTH_SHORT).show()
+    /**
+     * Handles the click event for the Add Wheel button.
+     * Shows a "Not implemented" snackbar message.
+     */
+    private fun onAddWheelButtonClick(scope: CoroutineScope, snackbarHostState : SnackbarHostState) {
+        scope.launch{
+            snackbarHostState.showSnackbar("Not implemented yet.")
+        }
     }
 
-    private fun onItemClick(name: String) {
-        Toast.makeText(this, "Not implemented yet for: $name", Toast.LENGTH_SHORT).show()
+    /**
+     * Handles the click event for an individual wheel item in the list.
+     * Shows a snackbar message indicating which item was clicked.
+     *
+     * @param name The name of the wheel item that was clicked.
+     */
+    private fun onItemClick(name: String, scope: CoroutineScope, snackbarHostState : SnackbarHostState) {
+        scope.launch{
+            snackbarHostState.showSnackbar("Not implemented on click: $name")
+        }
     }
 
-    private fun onDeleteItemCLick(name: String) {
-        Toast.makeText(this, "Not implemented yet for: $name", Toast.LENGTH_SHORT).show()
+    /**
+     * Handles the click event for the delete action on a specific wheel item.
+     * Shows a snackbar message indicating which item was requested to be deleted.
+     *
+     * @param name The name of the wheel item to be deleted.
+     */
+    private fun onDeleteItemCLick(name: String, scope: CoroutineScope, snackbarHostState : SnackbarHostState) {
+        scope.launch{
+            snackbarHostState.showSnackbar("Not implemented on delete: $name")
+        }
     }
 }
 
