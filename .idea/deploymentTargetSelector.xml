@@ -8,13 +8,13 @@
       <SelectionState runConfigName="MainActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="wheelsScreen_addWheel_showsSuccessDialog()">
+      <SelectionState runConfigName="Tests in 'com.mightypotato.wheelie'">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="wheelsScreen_itemInteractions_showSnackbars()">
+      <SelectionState runConfigName="ErrorDialogTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="wheelsScreen_emptyList_showsPlaceholder()">
+      <SelectionState runConfigName="wheelsScreen_addWheel_showsErrorDialogWhenProvidingDuplicate()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

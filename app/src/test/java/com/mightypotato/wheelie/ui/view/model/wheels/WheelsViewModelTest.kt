@@ -1,4 +1,4 @@
-package com.mightypotato.wheelie.ui.view.model
+package com.mightypotato.wheelie.ui.view.model.wheels
 
 import com.mightypotato.wheelie.data.WheelsRepository
 import kotlinx.coroutines.Dispatchers
@@ -13,11 +13,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -33,11 +31,6 @@ class WheelsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var repository: WheelsRepository
     private lateinit var viewModel: WheelsViewModel
-
-    // Helper to bypass Kotlin's null check when using Mockito matchers
-    private fun <T> anyKotlin(): T = any<T>() ?: uninitialized()
-    @Suppress("UNCHECKED_CAST")
-    private fun <T> uninitialized(): T = null as T
 
     @Before
     fun setUp() {
@@ -68,67 +61,23 @@ class WheelsViewModelTest {
     }
 
     @Test
-    fun onAddWheelButtonClick_resetsNameAndShowsDialog() {
-        viewModel.onAddWheelButtonClick()
-
-        assertTrue(viewModel.isAddWheelDialogVisible)
-        assertEquals("", viewModel.newWheelName)
-    }
-
-    @Test
-    fun onNewWheelNameChange_updatesState() {
-        val newName = "Carbon Fiber"
-        viewModel.onNewWheelNameChange(newName)
-
-        assertEquals(newName, viewModel.newWheelName)
-    }
-
-    @Test
-    fun onAddWheelConfirm_success_closesTheDialogAndOpensConfirmationDialog() = runTest {
-        viewModel.onAddWheelButtonClick()
-        viewModel.onNewWheelNameChange("New Wheel")
-        
-        // Mock successful insertion using anyKotlin() helper
-        `when`(repository.insertWheel(anyKotlin())).thenReturn(1L)
-
-        val events = mutableListOf<UiEvent>()
+    fun onAddWheelButtonClick_emitsEvent() = runTest {
+        val events = mutableListOf<WheelsViewModelUiEvent>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.events.collect { events.add(it) }
         }
 
-        viewModel.onAddWheelConfirm()
-        advanceUntilIdle()
-
-        assertFalse("Dialog should be hidden on success", viewModel.isAddWheelDialogVisible)
-        assertTrue("Confirmation dialog should be visible", viewModel.isAddWheelSuccessDialogVisible)
-    }
-
-    @Test
-    fun onAddWheelConfirm_duplicate_emitsErrorEvent() = runTest {
-        // Setup: Open dialog and set a name
         viewModel.onAddWheelButtonClick()
-        viewModel.onNewWheelNameChange("Existing Wheel")
-        
-        // Mock duplicate error (-1L) using anyKotlin() helper
-        `when`(repository.insertWheel(anyKotlin())).thenReturn(-1L)
-
-        val events = mutableListOf<UiEvent>()
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.events.collect { events.add(it) }
-        }
-
-        viewModel.onAddWheelConfirm()
         advanceUntilIdle()
 
-        assertTrue("Error event should be emitted", events.any { it is UiEvent.OnErrorEvent })
-        assertTrue("Dialog should remain visible on error", viewModel.isAddWheelDialogVisible)
+        assertTrue("Add wheel button click event should be emitted", events.any { it is WheelsViewModelUiEvent.OnAddWheelButtonClickEvent })
     }
 
     @Test
     fun onDeleteButtonClick_callsRepositoryAndEmitsEvent() = runTest {
         val name = "To Delete"
         
-        val events = mutableListOf<UiEvent>()
+        val events = mutableListOf<WheelsViewModelUiEvent>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.events.collect { events.add(it) }
         }
@@ -137,13 +86,13 @@ class WheelsViewModelTest {
         advanceUntilIdle()
 
         verify(repository).deleteWheelByName(name)
-        assertTrue("Delete event should be emitted", events.any { it is UiEvent.OnDeleteButtonClickEvent })
+        assertTrue("Delete event should be emitted", events.any { it is WheelsViewModelUiEvent.OnDeleteButtonClickEvent })
     }
 
     @Test
     fun onItemClick_emitsItemClickEvent() = runTest {
         val name = "Test Wheel"
-        val events = mutableListOf<UiEvent>()
+        val events = mutableListOf<WheelsViewModelUiEvent>()
 
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)){
             viewModel.events.collect { events.add(it) }
@@ -152,19 +101,6 @@ class WheelsViewModelTest {
         viewModel.onItemClick(name)
         advanceUntilIdle()
 
-        assertTrue("Item click event should be emitted", events.any { it is UiEvent.OnItemClickEvent })
-    }
-
-    @Test
-    fun onAddWheelDismiss_hidesDialog() {
-        viewModel.onAddWheelButtonClick()
-        viewModel.onAddWheelDismiss()
-        assertFalse(viewModel.isAddWheelDialogVisible)
-    }
-
-    @Test
-    fun onSuccessDialogDismiss_hidesDialog() {
-        viewModel.onSuccessDialogDismiss()
-        assertFalse(viewModel.isAddWheelSuccessDialogVisible)
+        assertTrue("Item click event should be emitted", events.any { it is WheelsViewModelUiEvent.OnItemClickEvent })
     }
 }

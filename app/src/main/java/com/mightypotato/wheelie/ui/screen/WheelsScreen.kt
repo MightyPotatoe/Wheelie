@@ -21,11 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.mightypotato.wheelie.ui.component.dialog.ErrorDialog
 import com.mightypotato.wheelie.ui.component.dialog.SuccessDialog
 import com.mightypotato.wheelie.ui.component.dialog.TwoButtonDialogWithInput
 import com.mightypotato.wheelie.ui.component.list.DeletableItemsList
-import com.mightypotato.wheelie.ui.view.model.UiEvent
-import com.mightypotato.wheelie.ui.view.model.WheelsViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogUiEvent
+import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedErrorDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedSuccessDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModelUiEvent
 import kotlinx.coroutines.launch
 
 /**
@@ -35,62 +41,89 @@ import kotlinx.coroutines.launch
  * - Observing the list of wheels from the [WheelsViewModel].
  * - Displaying a [Scaffold] with a [FloatingActionButton] to trigger the addition of new wheels.
  * - Showing a [TwoButtonDialogWithInput] for user input when adding a wheel.
- * - Collecting and displaying [UiEvent]s (like success or error messages) via a [SnackbarHost].
+ * - Collecting and displaying [AddWheelDialogUiEvent]s (like success or error messages) via a [SnackbarHost].
  *
- * @param viewModel The [WheelsViewModel] that manages the UI state and processes business logic.
+ * @param wheelsViewModel The [WheelsViewModel] that manages the UI state and processes business logic.
+ * @param addWheelDialogViewModel The [AddWheelDialogViewModel] that manages the state of alerts and dialogs.
  */
 @Composable
 fun WheelsScreen(
-    viewModel: WheelsViewModel,
+    wheelsViewModel: WheelsViewModel,
+    addWheelDialogViewModel: AddWheelDialogViewModel = viewModel(),
+    wheelAddedSuccessDialogViewModel: WheelAddedSuccessDialogViewModel = viewModel(),
+    wheelAddedErrorDialogViewModel: WheelAddedErrorDialogViewModel = viewModel()
+
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    // Collect events from the main WheelsViewModel
+    LaunchedEffect(wheelsViewModel) {
+        wheelsViewModel.events.collect { event ->
+            when (event) {
+                is WheelsViewModelUiEvent.OnDeleteButtonClickEvent -> {
+                    scope.launch { snackbarHostState.showSnackbar(event.message) }
+                }
+                is WheelsViewModelUiEvent.OnItemClickEvent -> {
+                    scope.launch { snackbarHostState.showSnackbar(event.message) }
+                }
+                is WheelsViewModelUiEvent.OnErrorEvent -> {
+                    scope.launch { snackbarHostState.showSnackbar(event.message) }
+                }
+                is WheelsViewModelUiEvent.OnAddWheelButtonClickEvent -> {
+                    addWheelDialogViewModel.displayDialog()
+                }
 
-    // Collects one-time UI events from the ViewModel and displays them in a Snackbar.
-    LaunchedEffect(Unit) {
-        viewModel.events.collect { event ->
-            when(event){
-                is UiEvent.OnDeleteButtonClickEvent -> {
-                    scope.launch{
-                        snackbarHostState.showSnackbar(event.message)
-                    }
+            }
+        }
+    }
+    // Collect events from the AddWheelDialogViewModel
+    LaunchedEffect(addWheelDialogViewModel) {
+        addWheelDialogViewModel.events.collect { event ->
+            when (event) {
+                is AddWheelDialogUiEvent.OnAddWheelSuccessEvent -> {
+                    addWheelDialogViewModel.hideAddWheelDialog()
+                    wheelAddedSuccessDialogViewModel.showSuccessDialog()
                 }
-                is UiEvent.OnItemClickEvent -> {
-                    scope.launch{
-                        snackbarHostState.showSnackbar(event.message)
-                    }
-                }
-                is UiEvent.OnErrorEvent -> {
-                    scope.launch{
-                        snackbarHostState.showSnackbar(event.message)
-                    }
+                is AddWheelDialogUiEvent.OnAddWheelErrorEvent -> {
+                    addWheelDialogViewModel.hideAddWheelDialog()
+                    wheelAddedErrorDialogViewModel.showErrorDialog()
                 }
             }
         }
     }
 
     // Displays the "Add Wheel" dialog when triggered by the FAB.
-    if (viewModel.isAddWheelDialogVisible) {
+    if (addWheelDialogViewModel.isAddWheelDialogVisible) {
         TwoButtonDialogWithInput(
             dialogTitle = "Add wheel",
             dialogMessage = "Enter new wheel name:",
             inputLabel = "Wheel name",
-            inputValue = viewModel.newWheelName,
-            confirmButtonText ="Add",
+            inputValue = addWheelDialogViewModel.newWheelName,
+            confirmButtonText = "Add",
             cancelButtonText = "Cancel",
-            onNameChange = { viewModel.onNewWheelNameChange(it) },
-            onConfirm = { viewModel.onAddWheelConfirm() },
-            onDismiss = { viewModel.onAddWheelDismiss() }
+            onNameChange = { addWheelDialogViewModel.onNewWheelNameChange(it) },
+            onConfirm = { addWheelDialogViewModel.onAddWheelConfirm(addWheelDialogViewModel.newWheelName) },
+            onDismiss = { addWheelDialogViewModel.hideAddWheelDialog() }
         )
     }
 
     // Displays the "Add Wheel" confirmation dialog.
-    if (viewModel.isAddWheelSuccessDialogVisible) {
+    if (wheelAddedSuccessDialogViewModel.isAddWheelSuccessDialogVisible) {
         SuccessDialog(
             title = "Done!",
-            message = "Wheel '${viewModel.newWheelName}' added successfully",
+            message = "Wheel '${addWheelDialogViewModel.newWheelName}' added successfully",
             confirmButtonText = "OK",
-            onConfirm = {viewModel.onSuccessDialogDismiss()}
+            onConfirm = { wheelAddedSuccessDialogViewModel.onSuccessDialogDismiss() }
+        )
+    }
+
+    // Displays the "Add Wheel" error dialog.
+    if (wheelAddedErrorDialogViewModel.isAddWheelErrorDialogVisible) {
+        ErrorDialog(
+            title = "Error",
+            message = "Wheel '${addWheelDialogViewModel.newWheelName}' could not be added. Verify if your wheel does not already exist",
+            confirmButtonText = "OK",
+            onConfirm = { wheelAddedErrorDialogViewModel.onErrorDialogDismiss() }
         )
     }
 
@@ -100,14 +133,14 @@ fun WheelsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier.testTag("add_wheel_button"),
-                onClick = { viewModel.onAddWheelButtonClick() }
+                onClick = { wheelsViewModel.onAddWheelButtonClick() }
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add wheel button")
             }
         }
     ) { innerPadding ->
         MainContent(
-            viewModel = viewModel,
+            viewModel = wheelsViewModel,
             padding = innerPadding
         )
     }
@@ -144,12 +177,12 @@ fun MainContent(
                 .padding(top = 24.dp)
                 .testTag("screen_title")
         )
-        
+
         // Render the list of available wheels.
         DeletableItemsList(
             itemsList = wheels,
-            onItemClick =  { name -> viewModel.onItemClick(name) },
-            onDeleteClick = {name -> viewModel.onDeleteButtonClick(name)}
+            onItemClick = { name -> viewModel.onItemClick(name) },
+            onDeleteClick = { name -> viewModel.onDeleteButtonClick(name) }
         )
     }
 }

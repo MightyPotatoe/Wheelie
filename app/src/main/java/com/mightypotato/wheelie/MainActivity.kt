@@ -8,7 +8,9 @@ import com.mightypotato.wheelie.data.WheelsRepository
 import com.mightypotato.wheelie.data.local.AppDatabase
 import com.mightypotato.wheelie.ui.screen.WheelsScreen
 import com.mightypotato.wheelie.ui.theme.AppTheme
-import com.mightypotato.wheelie.ui.view.model.WheelsViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedSuccessDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModel
 
 /**
  * The main entry point for the Wheelie application.
@@ -35,13 +37,19 @@ class MainActivity : ComponentActivity() {
         // Initialize Database and Repository
         val database = AppDatabase.getDatabase(applicationContext)
         val repository = WheelsRepository(database.wheelDao())
+        //Initialize view models
+        val wheelsViewModel = WheelsViewModel(repository)
+        val addWheelDialogViewModel = AddWheelDialogViewModel(repository)
+        val wheelAddedSuccessDialogViewModel = WheelAddedSuccessDialogViewModel()
         
         enableEdgeToEdge()
         setContent {
             AppTheme {
-                // Pass the repository to the ViewModel
+                // Pass the repository to the ViewModels
                 WheelsScreen(
-                    viewModel = WheelsViewModel(repository),
+                    wheelsViewModel = wheelsViewModel,
+                    addWheelDialogViewModel = addWheelDialogViewModel,
+                    wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
                 )
             }
         }
