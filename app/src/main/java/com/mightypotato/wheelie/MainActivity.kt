@@ -37,15 +37,19 @@ class MainActivity : ComponentActivity() {
         // Initialize Database and Repository
         val database = AppDatabase.getDatabase(applicationContext)
         val repository = WheelsRepository(database.wheelDao())
+        //Initialize view models
+        val wheelsViewModel = WheelsViewModel(repository)
+        val addWheelDialogViewModel = AddWheelDialogViewModel(repository)
+        val wheelAddedSuccessDialogViewModel = WheelAddedSuccessDialogViewModel()
         
         enableEdgeToEdge()
         setContent {
             AppTheme {
                 // Pass the repository to the ViewModels
                 WheelsScreen(
-                    wheelsViewModel = WheelsViewModel(repository),
-                    addWheelDialogViewModel = AddWheelDialogViewModel(repository),
-                    wheelAddedSuccessDialogViewModel = WheelAddedSuccessDialogViewModel()
+                    wheelsViewModel = wheelsViewModel,
+                    addWheelDialogViewModel = addWheelDialogViewModel,
+                    wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
                 )
             }
         }
