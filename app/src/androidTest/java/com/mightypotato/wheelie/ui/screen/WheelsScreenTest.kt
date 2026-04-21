@@ -7,7 +7,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.mightypotato.wheelie.data.WheelsRepository
-import com.mightypotato.wheelie.ui.view.model.WheelsViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedSuccessDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -30,6 +32,8 @@ class WheelsScreenTest {
 
     private lateinit var repository: WheelsRepository
     private lateinit var viewModel: WheelsViewModel
+    private lateinit var addWheelDialogViewModel: AddWheelDialogViewModel
+    private lateinit var wheelAddedSuccessDialogViewModel: WheelAddedSuccessDialogViewModel
 
     // Helper to bypass Kotlin's null check when using Mockito matchers
     private fun <T> anyKotlin(): T = any<T>() ?: uninitialized()
@@ -43,6 +47,8 @@ class WheelsScreenTest {
         `when`(repository.getWheels()).thenReturn(flowOf(listOf("Wheel 1", "Wheel 2")))
         
         viewModel = WheelsViewModel(repository)
+        addWheelDialogViewModel = AddWheelDialogViewModel(repository)
+        wheelAddedSuccessDialogViewModel = WheelAddedSuccessDialogViewModel()
     }
 
     /**
@@ -51,7 +57,11 @@ class WheelsScreenTest {
     @Test
     fun wheelsScreen_rendersCorrectly() {
         composeTestRule.setContent {
-            WheelsScreen(viewModel = viewModel)
+            WheelsScreen(
+                wheelsViewModel = viewModel,
+                addWheelDialogViewModel = addWheelDialogViewModel,
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+            )
         }
 
         // Check if title and items are displayed
@@ -67,7 +77,11 @@ class WheelsScreenTest {
     @Test
     fun wheelsScreen_fabClick_opensDialog() {
         composeTestRule.setContent {
-            WheelsScreen(viewModel = viewModel)
+            WheelsScreen(
+                wheelsViewModel = viewModel,
+                addWheelDialogViewModel = addWheelDialogViewModel,
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+            )
         }
 
         // Ensure dialog is not visible initially
@@ -86,7 +100,11 @@ class WheelsScreenTest {
     @Test
     fun wheelsScreen_dialogDismiss_closesDialog() {
         composeTestRule.setContent {
-            WheelsScreen(viewModel = viewModel)
+            WheelsScreen(
+                wheelsViewModel = viewModel,
+                addWheelDialogViewModel = addWheelDialogViewModel,
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+            )
         }
 
         // Open the dialog
@@ -112,7 +130,11 @@ class WheelsScreenTest {
         }
 
         composeTestRule.setContent {
-            WheelsScreen(viewModel = viewModel)
+            WheelsScreen(
+                wheelsViewModel = viewModel,
+                addWheelDialogViewModel = addWheelDialogViewModel,
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+            )
         }
 
         // 1. Open dialog
@@ -145,7 +167,11 @@ class WheelsScreenTest {
         viewModel = WheelsViewModel(repository)
 
         composeTestRule.setContent {
-            WheelsScreen(viewModel = viewModel)
+            WheelsScreen(
+                wheelsViewModel = viewModel,
+                addWheelDialogViewModel = addWheelDialogViewModel,
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+            )
         }
 
         composeTestRule.onNodeWithTag("empty_list_placeholder").assertIsDisplayed()
