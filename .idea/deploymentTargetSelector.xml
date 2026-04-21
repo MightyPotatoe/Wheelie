@@ -11,10 +11,7 @@
       <SelectionState runConfigName="Tests in 'com.mightypotato'">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="dialog_confirmButton_enablementLogic()">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
-      <SelectionState runConfigName="dialog_confirmButton_disabledWhenInputEmpty()">
+      <SelectionState runConfigName="WheelsScreenTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
