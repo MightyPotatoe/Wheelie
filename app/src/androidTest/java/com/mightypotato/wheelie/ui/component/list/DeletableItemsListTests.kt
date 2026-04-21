@@ -1,4 +1,4 @@
-package com.mightypotato.wheelie.component.list
+package com.mightypotato.wheelie.ui.component.list
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
@@ -12,8 +12,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.mightypotato.wheelie.ui.component.list.DeletableItemsList
-import org.junit.Assert.assertEquals
+import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 
@@ -88,11 +87,11 @@ class DeletableItemsListTests {
                 onDeleteClick = { }
             )
         }
-        
+
         composeTestRule.onNodeWithTag("empty_list_placeholder").assertIsDisplayed()
         composeTestRule.onNodeWithTag("empty_list_placeholder_text")
             .assertTextEquals("No items available")
-        
+
         // Ensure no items are rendered
         composeTestRule.onAllNodesWithTag("list_item").assertCountEquals(0)
     }
@@ -118,8 +117,8 @@ class DeletableItemsListTests {
 
         // Click the specific item
         composeTestRule.onNodeWithText("Target Item").performClick()
-        
-        assertEquals("Target Item", clickedItem)
+
+        Assert.assertEquals("Target Item", clickedItem)
     }
 
     /**
@@ -148,6 +147,6 @@ class DeletableItemsListTests {
             useUnmergedTree = true
         ).performClick()
 
-        assertEquals("Delete Me", deletedItem)
+        Assert.assertEquals("Delete Me", deletedItem)
     }
 }
