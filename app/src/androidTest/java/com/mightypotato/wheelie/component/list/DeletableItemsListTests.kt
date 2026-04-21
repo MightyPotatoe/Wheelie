@@ -13,14 +13,33 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.mightypotato.wheelie.ui.component.list.DeletableItemsList
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * Instrumented UI tests for the [DeletableItemsList] component.
+ *
+ * These tests run on an Android device/emulator and use the Compose Test Rule
+ * to verify UI rendering, state changes (like empty lists), and user interactions
+ * such as item clicks and deletions.
+ */
 class DeletableItemsListTests {
 
+    /**
+     * Rule used to run Compose-related tests, allowing for content setting and node finding.
+     */
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    /**
+     * Test: Item Rendering.
+     *
+     * Verifies that when a list of items is provided:
+     * 1. The correct number of list items are displayed.
+     * 2. The text for each item is visible.
+     * 3. A delete button is rendered specifically for each item.
+     */
     @Test
     fun deletableItemsList_displaysItems() {
         val items = listOf("Item 1", "Item 2")
@@ -33,9 +52,10 @@ class DeletableItemsListTests {
             )
         }
 
+        // Check if correct number of items are rendered
         composeTestRule.onAllNodesWithTag("list_item").assertCountEquals(2)
 
-        // Verify items are displayed
+        // Verify "Item 1" and its specific delete button are visible
         composeTestRule.onNodeWithText("Item 1").assertIsDisplayed()
         composeTestRule.onNode(
             hasTestTag("list_item_delete_button") and
@@ -43,7 +63,7 @@ class DeletableItemsListTests {
             useUnmergedTree = true
         ).assertIsDisplayed()
 
-
+        // Verify "Item 2" and its specific delete button are visible
         composeTestRule.onNodeWithText("Item 2").assertIsDisplayed()
         composeTestRule.onNode(
             hasTestTag("list_item_delete_button") and
@@ -52,8 +72,15 @@ class DeletableItemsListTests {
         ).assertIsDisplayed()
     }
 
+    /**
+     * Test: Empty State.
+     *
+     * Verifies that if an empty list is passed to the component:
+     * 1. The "No items available" placeholder text is shown.
+     * 2. No actual list items are rendered on the screen.
+     */
     @Test
-    fun deletableItemsList_emptyList_displaysNoItems() {
+    fun deletableItemsList_emptyList_displaysPlaceholder() {
         composeTestRule.setContent {
             DeletableItemsList(
                 itemsList = emptyList(),
@@ -61,35 +88,24 @@ class DeletableItemsListTests {
                 onDeleteClick = { }
             )
         }
-        composeTestRule.onAllNodesWithTag("list_item").assertCountEquals(0)
+        
+        composeTestRule.onNodeWithTag("empty_list_placeholder").assertIsDisplayed()
         composeTestRule.onNodeWithTag("empty_list_placeholder_text")
             .assertTextEquals("No items available")
+        
+        // Ensure no items are rendered
+        composeTestRule.onAllNodesWithTag("list_item").assertCountEquals(0)
     }
 
-    @Test
-    fun deletableItemsList_deleteClick_triggersCallback() {
-        val items = listOf("Item 1")
-        var deletedItem: String? = null
-
-        composeTestRule.setContent {
-            DeletableItemsList(
-                itemsList = items,
-                onItemClick = { /* No-op */ },
-                onDeleteClick = { deletedItem = it }
-            )
-        }
-        // Find and click the delete button specifically for "Item 1"
-        composeTestRule.onNode(
-            hasTestTag("list_item_delete_button"),
-            useUnmergedTree = true
-        ).performClick()
-        // Assert the delete callback was triggered for the correct item
-        assert(deletedItem == "Item 1")
-    }
-
+    /**
+     * Test: Item Interaction.
+     *
+     * Verifies that clicking the main body of a list item correctly triggers
+     * the [onItemClick] callback with the expected item string.
+     */
     @Test
     fun deletableItemsList_itemClick_triggersCallback() {
-        val items = listOf("Item 1")
+        val items = listOf("Target Item", "Other Item")
         var clickedItem: String? = null
 
         composeTestRule.setContent {
@@ -99,12 +115,39 @@ class DeletableItemsListTests {
                 onDeleteClick = { /* No-op */ }
             )
         }
-        // Find and click the delete button specifically for "Item 1"
+
+        // Click the specific item
+        composeTestRule.onNodeWithText("Target Item").performClick()
+        
+        assertEquals("Target Item", clickedItem)
+    }
+
+    /**
+     * Test: Deletion Interaction.
+     *
+     * Verifies that clicking the delete icon of a specific item triggers
+     * the [onDeleteClick] callback for that specific item and no other.
+     */
+    @Test
+    fun deletableItemsList_deleteClick_triggersCallback() {
+        val items = listOf("Delete Me", "Keep Me")
+        var deletedItem: String? = null
+
+        composeTestRule.setContent {
+            DeletableItemsList(
+                itemsList = items,
+                onItemClick = { /* No-op */ },
+                onDeleteClick = { deletedItem = it }
+            )
+        }
+
+        // Find and click the delete button specifically for "Delete Me"
         composeTestRule.onNode(
-            hasTestTag("list_item"),
+            hasTestTag("list_item_delete_button") and
+                    hasAnyAncestor(hasTestTag("list_item") and hasAnyDescendant(hasText("Delete Me"))),
             useUnmergedTree = true
         ).performClick()
-        // Assert the delete callback was triggered for the correct item
-        assert(clickedItem == "Item 1")
+
+        assertEquals("Delete Me", deletedItem)
     }
 }
