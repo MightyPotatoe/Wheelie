@@ -9,7 +9,7 @@ import com.mightypotato.wheelie.data.local.AppDatabase
 import com.mightypotato.wheelie.ui.screen.WheelsScreen
 import com.mightypotato.wheelie.ui.theme.AppTheme
 import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogViewModel
-import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedSuccessDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.RemoveWheelDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModel
 
 /**
@@ -40,8 +40,9 @@ class MainActivity : ComponentActivity() {
         //Initialize view models
         val wheelsViewModel = WheelsViewModel(repository)
         val addWheelDialogViewModel = AddWheelDialogViewModel(repository)
-        val wheelAddedSuccessDialogViewModel = WheelAddedSuccessDialogViewModel()
-        
+        val removeWheelDialogViewModel = RemoveWheelDialogViewModel(repository)
+
+
         enableEdgeToEdge()
         setContent {
             AppTheme {
@@ -49,7 +50,7 @@ class MainActivity : ComponentActivity() {
                 WheelsScreen(
                     wheelsViewModel = wheelsViewModel,
                     addWheelDialogViewModel = addWheelDialogViewModel,
-                    wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+                    removeWheelDialogViewModel = removeWheelDialogViewModel
                 )
             }
         }
