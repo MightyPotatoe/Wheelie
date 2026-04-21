@@ -8,13 +8,13 @@
       <SelectionState runConfigName="MainActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="Tests in 'com.mightypotato'">
+      <SelectionState runConfigName="wheelsScreen_addWheel_showsSuccessDialog()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="listItemClick_displaysSnackbar()">
+      <SelectionState runConfigName="wheelsScreen_itemInteractions_showSnackbars()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="WheelDaoTest">
+      <SelectionState runConfigName="wheelsScreen_emptyList_showsPlaceholder()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

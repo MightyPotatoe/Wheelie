@@ -84,8 +84,7 @@ class WheelsViewModelTest {
     }
 
     @Test
-    fun onAddWheelConfirm_success_emitsEventAndClosesDialog() = runTest {
-        // Setup: Open dialog and set a name
+    fun onAddWheelConfirm_success_closesTheDialogAndOpensConfirmationDialog() = runTest {
         viewModel.onAddWheelButtonClick()
         viewModel.onNewWheelNameChange("New Wheel")
         
@@ -100,8 +99,8 @@ class WheelsViewModelTest {
         viewModel.onAddWheelConfirm()
         advanceUntilIdle()
 
-        assertTrue("Success event should be emitted", events.any { it is UiEvent.OnAddWheelButtonClickEvent })
         assertFalse("Dialog should be hidden on success", viewModel.isAddWheelDialogVisible)
+        assertTrue("Confirmation dialog should be visible", viewModel.isAddWheelSuccessDialogVisible)
     }
 
     @Test
@@ -139,5 +138,33 @@ class WheelsViewModelTest {
 
         verify(repository).deleteWheelByName(name)
         assertTrue("Delete event should be emitted", events.any { it is UiEvent.OnDeleteButtonClickEvent })
+    }
+
+    @Test
+    fun onItemClick_emitsItemClickEvent() = runTest {
+        val name = "Test Wheel"
+        val events = mutableListOf<UiEvent>()
+
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)){
+            viewModel.events.collect { events.add(it) }
+        }
+
+        viewModel.onItemClick(name)
+        advanceUntilIdle()
+
+        assertTrue("Item click event should be emitted", events.any { it is UiEvent.OnItemClickEvent })
+    }
+
+    @Test
+    fun onAddWheelDismiss_hidesDialog() {
+        viewModel.onAddWheelButtonClick()
+        viewModel.onAddWheelDismiss()
+        assertFalse(viewModel.isAddWheelDialogVisible)
+    }
+
+    @Test
+    fun onSuccessDialogDismiss_hidesDialog() {
+        viewModel.onSuccessDialogDismiss()
+        assertFalse(viewModel.isAddWheelSuccessDialogVisible)
     }
 }

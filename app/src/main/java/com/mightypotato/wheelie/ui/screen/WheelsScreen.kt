@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mightypotato.wheelie.ui.component.dialog.SuccessDialog
 import com.mightypotato.wheelie.ui.component.dialog.TwoButtonDialogWithInput
 import com.mightypotato.wheelie.ui.component.list.DeletableItemsList
 import com.mightypotato.wheelie.ui.view.model.UiEvent
@@ -59,11 +60,6 @@ fun WheelsScreen(
                         snackbarHostState.showSnackbar(event.message)
                     }
                 }
-                is UiEvent.OnAddWheelButtonClickEvent -> {
-                    scope.launch{
-                        snackbarHostState.showSnackbar(event.message)
-                    }
-                }
                 is UiEvent.OnErrorEvent -> {
                     scope.launch{
                         snackbarHostState.showSnackbar(event.message)
@@ -85,6 +81,16 @@ fun WheelsScreen(
             onNameChange = { viewModel.onNewWheelNameChange(it) },
             onConfirm = { viewModel.onAddWheelConfirm() },
             onDismiss = { viewModel.onAddWheelDismiss() }
+        )
+    }
+
+    // Displays the "Add Wheel" confirmation dialog.
+    if (viewModel.isAddWheelSuccessDialogVisible) {
+        SuccessDialog(
+            title = "Done!",
+            message = "Wheel '${viewModel.newWheelName}' added successfully",
+            confirmButtonText = "OK",
+            onConfirm = {viewModel.onSuccessDialogDismiss()}
         )
     }
 
