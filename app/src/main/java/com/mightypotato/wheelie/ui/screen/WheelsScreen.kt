@@ -24,10 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mightypotato.wheelie.ui.component.dialog.ErrorDialog
 import com.mightypotato.wheelie.ui.component.dialog.SuccessDialog
+import com.mightypotato.wheelie.ui.component.dialog.TwoButtonDialog
 import com.mightypotato.wheelie.ui.component.dialog.TwoButtonDialogWithInput
 import com.mightypotato.wheelie.ui.component.list.DeletableItemsList
 import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogUiEvent
 import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.RemoveWheelDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedErrorDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedSuccessDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModel
@@ -51,8 +53,8 @@ fun WheelsScreen(
     wheelsViewModel: WheelsViewModel,
     addWheelDialogViewModel: AddWheelDialogViewModel = viewModel(),
     wheelAddedSuccessDialogViewModel: WheelAddedSuccessDialogViewModel = viewModel(),
-    wheelAddedErrorDialogViewModel: WheelAddedErrorDialogViewModel = viewModel()
-
+    wheelAddedErrorDialogViewModel: WheelAddedErrorDialogViewModel = viewModel(),
+    removeWheelDialogViewModel: RemoveWheelDialogViewModel = viewModel()
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -61,14 +63,17 @@ fun WheelsScreen(
         wheelsViewModel.events.collect { event ->
             when (event) {
                 is WheelsViewModelUiEvent.OnDeleteButtonClickEvent -> {
-                    scope.launch { snackbarHostState.showSnackbar(event.message) }
+                    scope.launch { removeWheelDialogViewModel.showRemoveWheelDialog(event.message) }
                 }
+
                 is WheelsViewModelUiEvent.OnItemClickEvent -> {
                     scope.launch { snackbarHostState.showSnackbar(event.message) }
                 }
+
                 is WheelsViewModelUiEvent.OnErrorEvent -> {
                     scope.launch { snackbarHostState.showSnackbar(event.message) }
                 }
+
                 is WheelsViewModelUiEvent.OnAddWheelButtonClickEvent -> {
                     addWheelDialogViewModel.displayDialog()
                 }
@@ -84,6 +89,7 @@ fun WheelsScreen(
                     addWheelDialogViewModel.hideAddWheelDialog()
                     wheelAddedSuccessDialogViewModel.showSuccessDialog()
                 }
+
                 is AddWheelDialogUiEvent.OnAddWheelErrorEvent -> {
                     addWheelDialogViewModel.hideAddWheelDialog()
                     wheelAddedErrorDialogViewModel.showErrorDialog()
@@ -124,6 +130,18 @@ fun WheelsScreen(
             message = "Wheel '${addWheelDialogViewModel.newWheelName}' could not be added. Verify if your wheel does not already exist",
             confirmButtonText = "OK",
             onConfirm = { wheelAddedErrorDialogViewModel.onErrorDialogDismiss() }
+        )
+    }
+
+    // Displays the "Remove Wheel" dialog.
+    if (removeWheelDialogViewModel.isRemoveWheelDialogVisible) {
+        TwoButtonDialog(
+            dialogTitle = "Delete wheel",
+            dialogMessage = "Delete wheel '${addWheelDialogViewModel.newWheelName}'? This action is irreversible.",
+            confirmButtonText = "Delete",
+            cancelButtonText = "Cancel",
+            onConfirm = { removeWheelDialogViewModel.onConfirmRemoveWheelDialogDismiss() },
+            onDismiss = { removeWheelDialogViewModel.onRemoveWheelDialogDismiss() }
         )
     }
 

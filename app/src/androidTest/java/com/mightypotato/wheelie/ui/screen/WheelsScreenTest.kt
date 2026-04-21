@@ -2,12 +2,15 @@ package com.mightypotato.wheelie.ui.screen
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.mightypotato.wheelie.data.WheelsRepository
 import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.RemoveWheelDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedErrorDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedSuccessDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModel
 import kotlinx.coroutines.flow.flowOf
@@ -17,13 +20,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 
 /**
  * Instrumented tests for the [WheelsScreen].
  *
- * Verifies that the screen correctly interacts with the [WheelsViewModel] to display data,
- * handle user clicks, and manage the visibility of the "Add Wheel" dialog.
+ * Verifies that the screen correctly interacts with the [WheelsViewModel] and other ViewModels
+ * to display data, handle user clicks, and manage the visibility of various dialogs.
  */
 class WheelsScreenTest {
 
@@ -34,6 +38,9 @@ class WheelsScreenTest {
     private lateinit var viewModel: WheelsViewModel
     private lateinit var addWheelDialogViewModel: AddWheelDialogViewModel
     private lateinit var wheelAddedSuccessDialogViewModel: WheelAddedSuccessDialogViewModel
+    private lateinit var wheelAddedErrorDialogViewModel: WheelAddedErrorDialogViewModel
+    private lateinit var removeWheelDialogViewModel: RemoveWheelDialogViewModel
+
 
     // Helper to bypass Kotlin's null check when using Mockito matchers
     private fun <T> anyKotlin(): T = any<T>() ?: uninitialized()
@@ -49,6 +56,8 @@ class WheelsScreenTest {
         viewModel = WheelsViewModel(repository)
         addWheelDialogViewModel = AddWheelDialogViewModel(repository)
         wheelAddedSuccessDialogViewModel = WheelAddedSuccessDialogViewModel()
+        wheelAddedErrorDialogViewModel = WheelAddedErrorDialogViewModel()
+        removeWheelDialogViewModel = RemoveWheelDialogViewModel(repository)
     }
 
     /**
@@ -60,7 +69,9 @@ class WheelsScreenTest {
             WheelsScreen(
                 wheelsViewModel = viewModel,
                 addWheelDialogViewModel = addWheelDialogViewModel,
-                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel,
+                wheelAddedErrorDialogViewModel = wheelAddedErrorDialogViewModel,
+                removeWheelDialogViewModel = removeWheelDialogViewModel
             )
         }
 
@@ -80,7 +91,9 @@ class WheelsScreenTest {
             WheelsScreen(
                 wheelsViewModel = viewModel,
                 addWheelDialogViewModel = addWheelDialogViewModel,
-                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel,
+                wheelAddedErrorDialogViewModel = wheelAddedErrorDialogViewModel,
+                removeWheelDialogViewModel = removeWheelDialogViewModel
             )
         }
 
@@ -103,7 +116,9 @@ class WheelsScreenTest {
             WheelsScreen(
                 wheelsViewModel = viewModel,
                 addWheelDialogViewModel = addWheelDialogViewModel,
-                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel,
+                wheelAddedErrorDialogViewModel = wheelAddedErrorDialogViewModel,
+                removeWheelDialogViewModel = removeWheelDialogViewModel
             )
         }
 
@@ -133,7 +148,9 @@ class WheelsScreenTest {
             WheelsScreen(
                 wheelsViewModel = viewModel,
                 addWheelDialogViewModel = addWheelDialogViewModel,
-                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel,
+                wheelAddedErrorDialogViewModel = wheelAddedErrorDialogViewModel,
+                removeWheelDialogViewModel = removeWheelDialogViewModel
             )
         }
 
@@ -170,7 +187,9 @@ class WheelsScreenTest {
             WheelsScreen(
                 wheelsViewModel = viewModel,
                 addWheelDialogViewModel = addWheelDialogViewModel,
-                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel,
+                wheelAddedErrorDialogViewModel = wheelAddedErrorDialogViewModel,
+                removeWheelDialogViewModel = removeWheelDialogViewModel
             )
         }
 
@@ -179,7 +198,7 @@ class WheelsScreenTest {
     }
 
     /**
-     * Verifies that adding a wheel correctly shows the success dialog and then dismisses it.
+     * Verifies that adding a wheel correctly shows the error dialog and then dismisses it.
      */
     @Test
     fun wheelsScreen_addWheel_showsErrorDialog() {
@@ -193,7 +212,9 @@ class WheelsScreenTest {
             WheelsScreen(
                 wheelsViewModel = viewModel,
                 addWheelDialogViewModel = addWheelDialogViewModel,
-                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel,
+                wheelAddedErrorDialogViewModel = wheelAddedErrorDialogViewModel,
+                removeWheelDialogViewModel = removeWheelDialogViewModel
             )
         }
 
@@ -214,6 +235,42 @@ class WheelsScreenTest {
         composeTestRule.onNodeWithText("OK").performClick()
 
         // 6. Verify Error Dialog is gone
-        composeTestRule.onNodeWithText("Done!").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Error").assertDoesNotExist()
+    }
+
+    /**
+     * Verifies that clicking the delete button on an item shows the remove wheel dialog
+     * and confirms deletion.
+     */
+    @Test
+    fun wheelsScreen_deleteWheel_showsRemoveDialogAndConfirms() {
+        val wheelName = "Wheel 1"
+
+        composeTestRule.setContent {
+            WheelsScreen(
+                wheelsViewModel = viewModel,
+                addWheelDialogViewModel = addWheelDialogViewModel,
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel,
+                wheelAddedErrorDialogViewModel = wheelAddedErrorDialogViewModel,
+                removeWheelDialogViewModel = removeWheelDialogViewModel
+            )
+        }
+
+        // 1. Click delete button on the first wheel
+        composeTestRule.onAllNodesWithTag("list_item_delete_button", useUnmergedTree = true)[0].performClick()
+
+        // 2. Verify Remove Dialog appears
+        composeTestRule.onNodeWithText("Delete wheel").assertIsDisplayed()
+        
+        // 3. Confirm deletion
+        composeTestRule.onNodeWithText("Delete").performClick()
+
+        // 4. Verify dialog is gone
+        composeTestRule.onNodeWithText("Delete wheel").assertDoesNotExist()
+        
+        // 5. Verify repository call
+        runBlocking {
+            verify(repository).deleteWheelByName(wheelName)
+        }
     }
 }

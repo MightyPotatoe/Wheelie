@@ -23,6 +23,7 @@ sealed class WheelsViewModelUiEvent {
     data class OnItemClickEvent(val message: String) : WheelsViewModelUiEvent()
     /** Event triggered when an error occurs during an operation. */
     data class OnErrorEvent(val message: String) : WheelsViewModelUiEvent()
+    /** Event triggered when the "Add Wheel" button is clicked. */
     class OnAddWheelButtonClickEvent : WheelsViewModelUiEvent()
 }
 
@@ -37,6 +38,9 @@ sealed class WheelsViewModelUiEvent {
 class WheelsViewModel(private val repository: WheelsRepository) : ViewModel() {
 
     private val _events = MutableSharedFlow<WheelsViewModelUiEvent>()
+    /**
+     * A stream of [WheelsViewModelUiEvent]s that the UI should observe and handle.
+     */
     val events = _events.asSharedFlow()
 
     /**
@@ -57,7 +61,7 @@ class WheelsViewModel(private val repository: WheelsRepository) : ViewModel() {
     }
 
     /**
-     * Prepares the state for showing the "Add Wheel" dialog.
+     * Prepares the state for showing the "Add Wheel" dialog by emitting an event.
      */
     fun onAddWheelButtonClick() {
         viewModelScope.launch {
@@ -72,8 +76,7 @@ class WheelsViewModel(private val repository: WheelsRepository) : ViewModel() {
      */
     fun onDeleteButtonClick(name: String) {
         viewModelScope.launch {
-            repository.deleteWheelByName(name)
-            _events.emit(WheelsViewModelUiEvent.OnDeleteButtonClickEvent("Deleted $name"))
+            _events.emit(WheelsViewModelUiEvent.OnDeleteButtonClickEvent(name))
         }
     }
 

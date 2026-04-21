@@ -17,7 +17,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 
 /**
@@ -74,7 +73,7 @@ class WheelsViewModelTest {
     }
 
     @Test
-    fun onDeleteButtonClick_callsRepositoryAndEmitsEvent() = runTest {
+    fun onDeleteButtonClick_EmitsEvent() = runTest {
         val name = "To Delete"
         
         val events = mutableListOf<WheelsViewModelUiEvent>()
@@ -85,7 +84,6 @@ class WheelsViewModelTest {
         viewModel.onDeleteButtonClick(name)
         advanceUntilIdle()
 
-        verify(repository).deleteWheelByName(name)
         assertTrue("Delete event should be emitted", events.any { it is WheelsViewModelUiEvent.OnDeleteButtonClickEvent })
     }
 
