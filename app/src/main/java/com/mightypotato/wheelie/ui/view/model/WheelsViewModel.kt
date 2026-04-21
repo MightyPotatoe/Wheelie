@@ -22,8 +22,6 @@ sealed class UiEvent {
     data class OnDeleteButtonClickEvent(val message: String) : UiEvent()
     /** Event triggered when a wheel item is clicked. */
     data class OnItemClickEvent(val message: String) : UiEvent()
-    /** Event triggered when a wheel is successfully added. */
-    data class OnAddWheelButtonClickEvent(val message: String) : UiEvent()
     /** Event triggered when an error occurs during an operation. */
     data class OnErrorEvent(val message: String) : UiEvent()
 }
@@ -56,6 +54,10 @@ class WheelsViewModel(private val repository: WheelsRepository) : ViewModel() {
      */
     var isAddWheelDialogVisible by mutableStateOf(false)
         private set
+
+    var isAddWheelSuccessDialogVisible by mutableStateOf(false)
+        private set
+
 
     /**
      * The current input value for the new wheel name in the dialog.
@@ -126,8 +128,8 @@ class WheelsViewModel(private val repository: WheelsRepository) : ViewModel() {
                 if (result == -1L) {
                     _events.emit(UiEvent.OnErrorEvent("Wheel with name '$newWheelName' already exists!"))
                 } else {
-                    _events.emit(UiEvent.OnAddWheelButtonClickEvent("Added ${newWheel.name} to Database"))
                     isAddWheelDialogVisible = false
+                    isAddWheelSuccessDialogVisible = true
                 }
             }
         }
@@ -138,5 +140,9 @@ class WheelsViewModel(private val repository: WheelsRepository) : ViewModel() {
      */
     fun onAddWheelDismiss() {
         isAddWheelDialogVisible = false
+    }
+
+    fun onSuccessDialogDismiss(){
+        isAddWheelSuccessDialogVisible = false
     }
 }

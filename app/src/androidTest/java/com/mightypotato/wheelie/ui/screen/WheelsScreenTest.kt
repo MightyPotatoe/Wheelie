@@ -5,12 +5,15 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import com.mightypotato.wheelie.data.WheelsRepository
 import com.mightypotato.wheelie.ui.view.model.WheelsViewModel
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
@@ -27,6 +30,11 @@ class WheelsScreenTest {
 
     private lateinit var repository: WheelsRepository
     private lateinit var viewModel: WheelsViewModel
+
+    // Helper to bypass Kotlin's null check when using Mockito matchers
+    private fun <T> anyKotlin(): T = any<T>() ?: uninitialized()
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> uninitialized(): T = null as T
 
     @Before
     fun setUp() {
@@ -90,5 +98,57 @@ class WheelsScreenTest {
 
         // Verify dialog is gone
         composeTestRule.onNodeWithText("Add wheel").assertDoesNotExist()
+    }
+
+    /**
+     * Verifies that adding a wheel correctly shows the success dialog and then dismisses it.
+     */
+    @Test
+    fun wheelsScreen_addWheel_showsSuccessDialog() {
+        // Mock successful insertion. Note: insertWheel is a suspend function.
+        // We use runBlocking here to allow calling the suspend function for Mockito setup.
+        runBlocking {
+            `when`(repository.insertWheel(anyKotlin())).thenReturn(1L)
+        }
+
+        composeTestRule.setContent {
+            WheelsScreen(viewModel = viewModel)
+        }
+
+        // 1. Open dialog
+        composeTestRule.onNodeWithTag("add_wheel_button").performClick()
+
+        // 2. Input name
+        composeTestRule.onNodeWithText("Wheel name").performTextInput("New Wheel")
+
+        // 3. Confirm addition
+        composeTestRule.onNodeWithText("Add").performClick()
+
+        // 4. Verify Success Dialog appears
+        composeTestRule.onNodeWithText("Done!").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Wheel 'New Wheel' added successfully").assertIsDisplayed()
+
+        // 5. Dismiss Success Dialog
+        composeTestRule.onNodeWithText("OK").performClick()
+
+        // 6. Verify Success Dialog is gone
+        composeTestRule.onNodeWithText("Done!").assertDoesNotExist()
+    }
+
+
+    /**
+     * Verifies that the screen shows a placeholder when the list of wheels is empty.
+     */
+    @Test
+    fun wheelsScreen_emptyList_showsPlaceholder() {
+        `when`(repository.getWheels()).thenReturn(flowOf(emptyList()))
+        viewModel = WheelsViewModel(repository)
+
+        composeTestRule.setContent {
+            WheelsScreen(viewModel = viewModel)
+        }
+
+        composeTestRule.onNodeWithTag("empty_list_placeholder").assertIsDisplayed()
+        composeTestRule.onNodeWithText("No items available").assertIsDisplayed()
     }
 }
