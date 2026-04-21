@@ -94,7 +94,7 @@ class AddWheelDialogViewModelTest {
         viewModel.onAddWheelConfirm(wheelName)
         advanceUntilIdle()
 
-        assertTrue("Error event should be emitted", events.any { it is AddWheelDialogUiEvent.OnErrorEvent })
+        assertTrue("Error event should be emitted", events.any { it is AddWheelDialogUiEvent.OnAddWheelErrorEvent })
     }
 
     @Test

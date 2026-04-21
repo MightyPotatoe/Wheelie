@@ -11,17 +11,31 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
+/**
+ * Represents the one-time events related to the "Add Wheel" dialog.
+ */
 sealed class AddWheelDialogUiEvent {
-    data class OnErrorEvent(val message: String) : AddWheelDialogUiEvent()
+    /** Event emitted when a wheel cannot be added (e.g., duplicate name). */
+    data object OnAddWheelErrorEvent : AddWheelDialogUiEvent()
+    /** Event emitted when a wheel is successfully added to the database. */
     data object OnAddWheelSuccessEvent : AddWheelDialogUiEvent()
 }
 
 /**
- * ViewModel responsible for managing the state of alerts and dialogs.
+ * ViewModel responsible for managing the state and logic of the "Add Wheel" dialog.
+ *
+ * It handles showing/hiding the dialog, managing the input field state, and
+ * persisting new wheels via the [WheelsRepository].
+ *
+ * @property repository The repository used to perform wheel data operations.
  */
 class AddWheelDialogViewModel(private val repository: WheelsRepository) : ViewModel() {
 
     private val _events = MutableSharedFlow<AddWheelDialogUiEvent>()
+
+    /**
+     * A stream of [AddWheelDialogUiEvent]s that the UI should observe and handle.
+     */
     val events = _events.asSharedFlow()
 
     /**
@@ -30,19 +44,19 @@ class AddWheelDialogViewModel(private val repository: WheelsRepository) : ViewMo
     var isAddWheelDialogVisible by mutableStateOf(false)
         private set
 
-
-
     /**
      * The current input value for the new wheel name in the dialog.
      */
     var newWheelName by mutableStateOf("")
         private set
 
+    /**
+     * Resets the input field and displays the "Add Wheel" dialog.
+     */
     fun displayDialog() {
         newWheelName = ""
         isAddWheelDialogVisible = true
     }
-
 
     /**
      * Updates the temporary wheel name as the user types in the dialog.
@@ -53,6 +67,9 @@ class AddWheelDialogViewModel(private val repository: WheelsRepository) : ViewMo
         newWheelName = newName
     }
 
+    /**
+     * Dismisses the "Add Wheel" dialog.
+     */
     fun hideAddWheelDialog() {
         isAddWheelDialogVisible = false
     }
@@ -70,9 +87,12 @@ class AddWheelDialogViewModel(private val repository: WheelsRepository) : ViewMo
             viewModelScope.launch {
                 val newWheel = Wheel(name = newWheelName, owner = "Default")
                 val result = repository.insertWheel(newWheel)
+                //On error
                 if (result == -1L) {
-                    _events.emit(AddWheelDialogUiEvent.OnErrorEvent("Wheel with name '$newWheelName' already exists!"))
-                } else {
+                    _events.emit(AddWheelDialogUiEvent.OnAddWheelErrorEvent)
+                }
+                //On success
+                else {
                     _events.emit(AddWheelDialogUiEvent.OnAddWheelSuccessEvent)
                 }
             }

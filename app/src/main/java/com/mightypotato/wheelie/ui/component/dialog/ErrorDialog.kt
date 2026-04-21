@@ -16,7 +16,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.mightypotato.wheelie.ui.theme.AppTheme
 
-
+/**
+ * A reusable error dialog component that displays an error icon, title, centered message,
+ * and a confirm button.
+ *
+ * This dialog is designed to communicate error states to the user. It uses the
+ * theme's error color for the icon and centers both the title and the message text.
+ *
+ * @param title The text to display as the dialog's title.
+ * @param message The detailed error message to display in the body of the dialog.
+ * @param confirmButtonText The text for the positive action button (e.g., "OK").
+ * @param onConfirm Callback invoked when the confirm button is clicked.
+ * @param onDismiss Callback invoked when the dialog is dismissed. Defaults to [onConfirm].
+ */
 @Composable
 fun ErrorDialog(
     title: String,

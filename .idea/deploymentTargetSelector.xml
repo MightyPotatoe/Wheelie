@@ -17,6 +17,9 @@
       <SelectionState runConfigName="ErrorDialogTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="wheelsScreen_addWheel_showsErrorDialogWhenProvidingDuplicate()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>
