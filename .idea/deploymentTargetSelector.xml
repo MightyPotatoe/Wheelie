@@ -11,9 +11,6 @@
       <SelectionState runConfigName="Tests in 'com.mightypotato.wheelie'">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="SuccessDialogPreview">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="ErrorDialogTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
