@@ -177,4 +177,43 @@ class WheelsScreenTest {
         composeTestRule.onNodeWithTag("empty_list_placeholder").assertIsDisplayed()
         composeTestRule.onNodeWithText("No items available").assertIsDisplayed()
     }
+
+    /**
+     * Verifies that adding a wheel correctly shows the success dialog and then dismisses it.
+     */
+    @Test
+    fun wheelsScreen_addWheel_showsErrorDialog() {
+        // Mock failed insertion. Note: insertWheel is a suspend function.
+        // We use runBlocking here to allow calling the suspend function for Mockito setup.
+        runBlocking {
+            `when`(repository.insertWheel(anyKotlin())).thenReturn(-1L)
+        }
+
+        composeTestRule.setContent {
+            WheelsScreen(
+                wheelsViewModel = viewModel,
+                addWheelDialogViewModel = addWheelDialogViewModel,
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel
+            )
+        }
+
+        // 1. Open dialog
+        composeTestRule.onNodeWithTag("add_wheel_button").performClick()
+
+        // 2. Input name
+        composeTestRule.onNodeWithText("Wheel name").performTextInput("New Wheel")
+
+        // 3. Confirm addition
+        composeTestRule.onNodeWithText("Add").performClick()
+
+        // 4. Verify Error Dialog appears
+        composeTestRule.onNodeWithText("Error").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Wheel 'New Wheel' could not be added. Verify if your wheel does not already exist").assertIsDisplayed()
+
+        // 5. Dismiss Error Dialog
+        composeTestRule.onNodeWithText("OK").performClick()
+
+        // 6. Verify Error Dialog is gone
+        composeTestRule.onNodeWithText("Done!").assertDoesNotExist()
+    }
 }

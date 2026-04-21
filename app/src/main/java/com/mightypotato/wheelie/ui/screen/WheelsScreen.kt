@@ -22,11 +22,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.mightypotato.wheelie.ui.component.dialog.ErrorDialog
 import com.mightypotato.wheelie.ui.component.dialog.SuccessDialog
 import com.mightypotato.wheelie.ui.component.dialog.TwoButtonDialogWithInput
 import com.mightypotato.wheelie.ui.component.list.DeletableItemsList
 import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogUiEvent
 import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogViewModel
+import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedErrorDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedSuccessDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModelUiEvent
@@ -48,7 +50,9 @@ import kotlinx.coroutines.launch
 fun WheelsScreen(
     wheelsViewModel: WheelsViewModel,
     addWheelDialogViewModel: AddWheelDialogViewModel = viewModel(),
-    wheelAddedSuccessDialogViewModel: WheelAddedSuccessDialogViewModel = viewModel()
+    wheelAddedSuccessDialogViewModel: WheelAddedSuccessDialogViewModel = viewModel(),
+    wheelAddedErrorDialogViewModel: WheelAddedErrorDialogViewModel = viewModel()
+
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -66,7 +70,7 @@ fun WheelsScreen(
                     scope.launch { snackbarHostState.showSnackbar(event.message) }
                 }
                 is WheelsViewModelUiEvent.OnAddWheelButtonClickEvent -> {
-                    addWheelDialogViewModel.displayDialog();
+                    addWheelDialogViewModel.displayDialog()
                 }
 
             }
@@ -80,8 +84,9 @@ fun WheelsScreen(
                     addWheelDialogViewModel.hideAddWheelDialog()
                     wheelAddedSuccessDialogViewModel.showSuccessDialog()
                 }
-                is AddWheelDialogUiEvent.OnErrorEvent -> {
-                    scope.launch { snackbarHostState.showSnackbar(event.message) }
+                is AddWheelDialogUiEvent.OnAddWheelErrorEvent -> {
+                    addWheelDialogViewModel.hideAddWheelDialog()
+                    wheelAddedErrorDialogViewModel.showErrorDialog()
                 }
             }
         }
@@ -109,6 +114,16 @@ fun WheelsScreen(
             message = "Wheel '${addWheelDialogViewModel.newWheelName}' added successfully",
             confirmButtonText = "OK",
             onConfirm = { wheelAddedSuccessDialogViewModel.onSuccessDialogDismiss() }
+        )
+    }
+
+    // Displays the "Add Wheel" error dialog.
+    if (wheelAddedErrorDialogViewModel.isAddWheelErrorDialogVisible) {
+        ErrorDialog(
+            title = "Error",
+            message = "Wheel '${addWheelDialogViewModel.newWheelName}' could not be added. Verify if your wheel does not already exist",
+            confirmButtonText = "OK",
+            onConfirm = { wheelAddedErrorDialogViewModel.onErrorDialogDismiss() }
         )
     }
 
