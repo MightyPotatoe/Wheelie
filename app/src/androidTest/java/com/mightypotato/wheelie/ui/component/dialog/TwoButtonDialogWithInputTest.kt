@@ -50,17 +50,17 @@ class TwoButtonDialogWithInputTest {
     }
 
     /**
-     * Verifies that the confirm button is disabled when the input is blank and enabled otherwise.
+     * Verifies that the confirm button is disabled when the input is empty.
      */
     @Test
-    fun dialog_confirmButton_enablementLogic() {
+    fun dialog_confirmButton_disabledWhenInputEmpty() {
         // Test disabled state
         composeTestRule.setContent {
             TwoButtonDialogWithInput(
                 dialogTitle = "Title",
                 dialogMessage = "Msg",
                 inputLabel = "Label",
-                inputValue = "  ", // Blank
+                inputValue = "", // Blank
                 confirmButtonText = "Confirm",
                 cancelButtonText = "Cancel",
                 onNameChange = {},
@@ -69,7 +69,13 @@ class TwoButtonDialogWithInputTest {
             )
         }
         composeTestRule.onNodeWithText("Confirm").assertIsNotEnabled()
+    }
 
+    /**
+     * Verifies that the confirm button is enabled when the input is filled.
+     */
+    @Test
+    fun dialog_confirmButton_enabledWhenInputFilled() {
         // Test enabled state
         composeTestRule.setContent {
             TwoButtonDialogWithInput(

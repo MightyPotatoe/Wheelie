@@ -14,32 +14,79 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.mightypotato.wheelie.ui.component.list.WheelList
-import kotlinx.coroutines.CoroutineScope
+import com.mightypotato.wheelie.ui.component.dialog.TwoButtonDialogWithInput
+import com.mightypotato.wheelie.ui.component.list.DeletableItemsList
+import com.mightypotato.wheelie.ui.view.model.UiEvent
+import com.mightypotato.wheelie.ui.view.model.WheelsViewModel
+import kotlinx.coroutines.launch
 
 /**
- * The main UI layout for the application.
+ * The primary screen for managing and viewing wheels.
  *
- * @param wheelList The list of items to display.
- * @param onAddWheelClick Callback for the Floating Action Button.
- * @param onItemClick Callback for clicking a list item.
- * @param onDeleteItemClick Callback for clicking the delete button on an item.
+ * This screen serves as the main entry point for the "Wheels" feature. It handles:
+ * - Observing the list of wheels from the [WheelsViewModel].
+ * - Displaying a [Scaffold] with a [FloatingActionButton] to trigger the addition of new wheels.
+ * - Showing a [TwoButtonDialogWithInput] for user input when adding a wheel.
+ * - Collecting and displaying [UiEvent]s (like success or error messages) via a [SnackbarHost].
+ *
+ * @param viewModel The [WheelsViewModel] that manages the UI state and processes business logic.
  */
 @Composable
 fun WheelsScreen(
-    wheelList: List<String>,
-    onAddWheelClick: (CoroutineScope, SnackbarHostState) -> Unit,
-    onItemClick: (String, CoroutineScope, SnackbarHostState) -> Unit,
-    onDeleteItemClick: (String, CoroutineScope, SnackbarHostState) -> Unit
+    viewModel: WheelsViewModel,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    // Collects one-time UI events from the ViewModel and displays them in a Snackbar.
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when(event){
+                is UiEvent.OnDeleteButtonClickEvent -> {
+                    scope.launch{
+                        snackbarHostState.showSnackbar(event.message)
+                    }
+                }
+                is UiEvent.OnItemClickEvent -> {
+                    scope.launch{
+                        snackbarHostState.showSnackbar(event.message)
+                    }
+                }
+                is UiEvent.OnAddWheelButtonClickEvent -> {
+                    scope.launch{
+                        snackbarHostState.showSnackbar(event.message)
+                    }
+                }
+                is UiEvent.OnErrorEvent -> {
+                    scope.launch{
+                        snackbarHostState.showSnackbar(event.message)
+                    }
+                }
+            }
+        }
+    }
+
+    // Displays the "Add Wheel" dialog when triggered by the FAB.
+    if (viewModel.isAddWheelDialogVisible) {
+        TwoButtonDialogWithInput(
+            dialogTitle = "Add wheel",
+            dialogMessage = "Enter new wheel name:",
+            inputLabel = "Wheel name",
+            inputValue = viewModel.newWheelName,
+            confirmButtonText ="Add",
+            cancelButtonText = "Cancel",
+            onNameChange = { viewModel.onNewWheelNameChange(it) },
+            onConfirm = { viewModel.onAddWheelConfirm() },
+            onDismiss = { viewModel.onAddWheelDismiss() }
+        )
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -47,37 +94,41 @@ fun WheelsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier.testTag("add_wheel_button"),
-                onClick = { onAddWheelClick(scope, snackbarHostState) }
+                onClick = { viewModel.onAddWheelButtonClick() }
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add wheel button")
             }
         }
     ) { innerPadding ->
         MainContent(
-            padding = innerPadding,
-            wheelList = wheelList,
-            onItemClick = { name -> onItemClick(name, scope, snackbarHostState) },
-            onDeleteItemClick = { name -> onDeleteItemClick(name, scope, snackbarHostState) }
+            viewModel = viewModel,
+            padding = innerPadding
         )
     }
 }
 
 /**
- * Displays the main column content including the title and the [WheelList].
+ * The main scrollable content area of the wheels screen.
+ *
+ * Renders the screen title and the [DeletableItemsList] that displays the collection of wheels.
+ *
+ * @param viewModel The [WheelsViewModel] used to access the list of wheels and handle interaction callbacks.
+ * @param padding The [PaddingValues] provided by the parent [Scaffold] to ensure proper layout spacing.
  */
 @Composable
-private fun MainContent(
+fun MainContent(
+    viewModel: WheelsViewModel,
     padding: PaddingValues,
-    wheelList: List<String>,
-    onItemClick: (String) -> Unit,
-    onDeleteItemClick: (String) -> Unit
 ) {
+
+    val wheels = viewModel.wheels
+
     Column(
         modifier = Modifier
             .padding(padding)
             .fillMaxSize()
     ) {
-        //Title
+        // Render the screen header title.
         Text(
             text = "Wheels",
             style = MaterialTheme.typography.headlineLarge,
@@ -87,12 +138,12 @@ private fun MainContent(
                 .padding(top = 24.dp)
                 .testTag("screen_title")
         )
-        //List of available wheels
-        WheelList(
-            wheelNames = wheelList,
-            modifier = Modifier.testTag("wheel_list"),
-            onItemClick = onItemClick,
-            onDeleteClick = onDeleteItemClick
+        
+        // Render the list of available wheels.
+        DeletableItemsList(
+            itemsList = wheels,
+            onItemClick =  { name -> viewModel.onItemClick(name) },
+            onDeleteClick = {name -> viewModel.onDeleteButtonClick(name)}
         )
     }
 }
