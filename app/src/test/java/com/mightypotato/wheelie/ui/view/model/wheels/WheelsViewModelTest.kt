@@ -73,7 +73,7 @@ class WheelsViewModelTest {
     }
 
     @Test
-    fun onDeleteButtonClick_EmitsEvent() = runTest {
+    fun onDeleteButtonClick_EmitsEventWithCorrectName() = runTest {
         val name = "To Delete"
         
         val events = mutableListOf<WheelsViewModelUiEvent>()
@@ -84,11 +84,13 @@ class WheelsViewModelTest {
         viewModel.onDeleteButtonClick(name)
         advanceUntilIdle()
 
-        assertTrue("Delete event should be emitted", events.any { it is WheelsViewModelUiEvent.OnDeleteButtonClickEvent })
+        val event = events.filterIsInstance<WheelsViewModelUiEvent.OnDeleteButtonClickEvent>().firstOrNull()
+        assertTrue("Delete event should be emitted", event != null)
+        assertEquals("Event should contain the correct wheel name", name, event?.message)
     }
 
     @Test
-    fun onItemClick_emitsItemClickEvent() = runTest {
+    fun onItemClick_emitsOnItemClickEventWithCorrectName() = runTest {
         val name = "Test Wheel"
         val events = mutableListOf<WheelsViewModelUiEvent>()
 
@@ -99,6 +101,8 @@ class WheelsViewModelTest {
         viewModel.onItemClick(name)
         advanceUntilIdle()
 
-        assertTrue("Item click event should be emitted", events.any { it is WheelsViewModelUiEvent.OnItemClickEvent })
+        val event = events.filterIsInstance<WheelsViewModelUiEvent.OnItemClickEvent>().firstOrNull()
+        assertTrue("Item click event should be emitted", event != null)
+        assertEquals("Event should contain the correct wheel name", name, event?.wheelName)
     }
 }

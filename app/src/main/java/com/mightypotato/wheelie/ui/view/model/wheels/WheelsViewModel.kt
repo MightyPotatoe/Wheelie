@@ -11,19 +11,24 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 /**
- * Represents the various one-time events that can occur in the UI.
- *
- * These events are typically consumed by a [LaunchedEffect] in the UI to show
- * snackbars or perform navigation.
+ * Represents the various one-time events that can occur in the UI of the Wheels screen.
  */
 sealed class WheelsViewModelUiEvent {
-    /** Event triggered when a wheel is deleted. */
+    /**
+     * Event triggered when a wheel is requested to be deleted.
+     * @property message The name of the wheel to delete.
+     */
     data class OnDeleteButtonClickEvent(val message: String) : WheelsViewModelUiEvent()
-    /** Event triggered when a wheel item is clicked. */
-    data class OnItemClickEvent(val message: String) : WheelsViewModelUiEvent()
-    /** Event triggered when an error occurs during an operation. */
-    data class OnErrorEvent(val message: String) : WheelsViewModelUiEvent()
-    /** Event triggered when the "Add Wheel" button is clicked. */
+
+    /**
+     * Event triggered to navigate to the spinner screen for a specific wheel.
+     * @property wheelName The name of the wheel to display in the spinner.
+     */
+    data class OnItemClickEvent(val wheelName: String) : WheelsViewModelUiEvent()
+
+    /**
+     * Event triggered when the "Add Wheel" button is clicked.
+     */
     class OnAddWheelButtonClickEvent : WheelsViewModelUiEvent()
 }
 
@@ -81,13 +86,13 @@ class WheelsViewModel(private val repository: WheelsRepository) : ViewModel() {
     }
 
     /**
-     * Handles a click event on a specific wheel item.
+     * Handles a click on a wheel item by emitting a navigation event.
      *
-     * @param name The name of the clicked wheel.
+     * @param name The name of the wheel that was clicked.
      */
     fun onItemClick(name: String) {
         viewModelScope.launch {
-            _events.emit(WheelsViewModelUiEvent.OnItemClickEvent("Testing onItemClick $name"))
+            _events.emit(WheelsViewModelUiEvent.OnItemClickEvent(name))
         }
     }
 }
