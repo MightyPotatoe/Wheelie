@@ -1,5 +1,6 @@
 package com.mightypotato.wheelie.ui.screen
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,15 +19,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.mightypotato.wheelie.SpinnerActivity
 import com.mightypotato.wheelie.ui.component.dialog.ErrorDialog
 import com.mightypotato.wheelie.ui.component.dialog.SuccessDialog
 import com.mightypotato.wheelie.ui.component.dialog.TwoButtonDialog
 import com.mightypotato.wheelie.ui.component.dialog.TwoButtonDialogWithInput
 import com.mightypotato.wheelie.ui.component.list.DeletableItemsList
+import com.mightypotato.wheelie.ui.theme.AppTheme
 import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogUiEvent
 import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.RemoveWheelDialogViewModel
@@ -34,7 +39,6 @@ import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedErrorDialogViewMo
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedSuccessDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModelUiEvent
-import kotlinx.coroutines.launch
 
 /**
  * The primary screen for managing and viewing wheels.
@@ -43,7 +47,6 @@ import kotlinx.coroutines.launch
  * - Observing the list of wheels from the [WheelsViewModel].
  * - Displaying a [Scaffold] with a [FloatingActionButton] to trigger the addition of new wheels.
  * - Showing a [TwoButtonDialogWithInput] for user input when adding a wheel.
- * - Collecting and displaying [AddWheelDialogUiEvent]s (like success or error messages) via a [SnackbarHost].
  *
  * @param wheelsViewModel The [WheelsViewModel] that manages the UI state and processes business logic.
  * @param addWheelDialogViewModel The [AddWheelDialogViewModel] that manages the state of alerts and dialogs.
@@ -58,26 +61,24 @@ fun WheelsScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     // Collect events from the main WheelsViewModel
     LaunchedEffect(wheelsViewModel) {
         wheelsViewModel.events.collect { event ->
             when (event) {
                 is WheelsViewModelUiEvent.OnDeleteButtonClickEvent -> {
-                    scope.launch { removeWheelDialogViewModel.showRemoveWheelDialog(event.message) }
+                     removeWheelDialogViewModel.showRemoveWheelDialog(event.message)
                 }
-
                 is WheelsViewModelUiEvent.OnItemClickEvent -> {
-                    scope.launch { snackbarHostState.showSnackbar(event.message) }
+                    val intent = Intent(context, SpinnerActivity::class.java).apply {
+                        putExtra("WHEEL_NAME", event.wheelName)
+                    }
+                    context.startActivity(intent)
                 }
-
-                is WheelsViewModelUiEvent.OnErrorEvent -> {
-                    scope.launch { snackbarHostState.showSnackbar(event.message) }
-                }
-
                 is WheelsViewModelUiEvent.OnAddWheelButtonClickEvent -> {
                     addWheelDialogViewModel.displayDialog()
                 }
-
             }
         }
     }
@@ -137,7 +138,7 @@ fun WheelsScreen(
     if (removeWheelDialogViewModel.isRemoveWheelDialogVisible) {
         TwoButtonDialog(
             dialogTitle = "Delete wheel",
-            dialogMessage = "Delete wheel '${addWheelDialogViewModel.newWheelName}'? This action is irreversible.",
+            dialogMessage = "Delete wheel '${removeWheelDialogViewModel.itemToRemoveName}'? This action is irreversible.",
             confirmButtonText = "Delete",
             cancelButtonText = "Cancel",
             onConfirm = { removeWheelDialogViewModel.onConfirmRemoveWheelDialogDismiss() },
@@ -158,7 +159,9 @@ fun WheelsScreen(
         }
     ) { innerPadding ->
         MainContent(
-            viewModel = wheelsViewModel,
+            wheels = wheelsViewModel.wheels,
+            onItemClick = { name -> wheelsViewModel.onItemClick(name) },
+            onDeleteClick = { name -> wheelsViewModel.onDeleteButtonClick(name) },
             padding = innerPadding
         )
     }
@@ -167,19 +170,18 @@ fun WheelsScreen(
 /**
  * The main scrollable content area of the wheels screen.
  *
- * Renders the screen title and the [DeletableItemsList] that displays the collection of wheels.
- *
- * @param viewModel The [WheelsViewModel] used to access the list of wheels and handle interaction callbacks.
- * @param padding The [PaddingValues] provided by the parent [Scaffold] to ensure proper layout spacing.
+ * @param wheels The list of wheel names to display.
+ * @param onItemClick Callback when a wheel is clicked.
+ * @param onDeleteClick Callback when the delete button is clicked.
+ * @param padding The [PaddingValues] provided by the parent [Scaffold].
  */
 @Composable
 fun MainContent(
-    viewModel: WheelsViewModel,
+    wheels: List<String>,
+    onItemClick: (String) -> Unit,
+    onDeleteClick: (String) -> Unit,
     padding: PaddingValues,
 ) {
-
-    val wheels = viewModel.wheels
-
     Column(
         modifier = Modifier
             .padding(padding)
@@ -199,8 +201,21 @@ fun MainContent(
         // Render the list of available wheels.
         DeletableItemsList(
             itemsList = wheels,
-            onItemClick = { name -> viewModel.onItemClick(name) },
-            onDeleteClick = { name -> viewModel.onDeleteButtonClick(name) }
+            onItemClick = onItemClick,
+            onDeleteClick = onDeleteClick
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun WheelsScreenPreview() {
+    AppTheme {
+        MainContent(
+            wheels = listOf("Wheel 1", "Wheel 2", "Wheel 3"),
+            onItemClick = {},
+            onDeleteClick = {},
+            padding = PaddingValues(0.dp)
         )
     }
 }

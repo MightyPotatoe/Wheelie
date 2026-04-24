@@ -7,6 +7,11 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.test.espresso.intent.Intents.intended
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra
+import androidx.test.espresso.intent.rule.IntentsRule
+import com.mightypotato.wheelie.SpinnerActivity
 import com.mightypotato.wheelie.data.WheelsRepository
 import com.mightypotato.wheelie.ui.view.model.wheels.AddWheelDialogViewModel
 import com.mightypotato.wheelie.ui.view.model.wheels.RemoveWheelDialogViewModel
@@ -15,6 +20,7 @@ import com.mightypotato.wheelie.ui.view.model.wheels.WheelAddedSuccessDialogView
 import com.mightypotato.wheelie.ui.view.model.wheels.WheelsViewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.Matchers.allOf
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -33,6 +39,9 @@ class WheelsScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
+
+    @get:Rule
+    val intentsRule = IntentsRule()
 
     private lateinit var repository: WheelsRepository
     private lateinit var viewModel: WheelsViewModel
@@ -272,5 +281,34 @@ class WheelsScreenTest {
         runBlocking {
             verify(repository).deleteWheelByName(wheelName)
         }
+    }
+
+    /**
+     * Verifies that clicking a wheel item triggers navigation to [SpinnerActivity] with the correct extras.
+     */
+    @Test
+    fun wheelsScreen_itemClick_navigatesToSpinnerActivity() {
+        val wheelName = "Wheel 1"
+
+        composeTestRule.setContent {
+            WheelsScreen(
+                wheelsViewModel = viewModel,
+                addWheelDialogViewModel = addWheelDialogViewModel,
+                wheelAddedSuccessDialogViewModel = wheelAddedSuccessDialogViewModel,
+                wheelAddedErrorDialogViewModel = wheelAddedErrorDialogViewModel,
+                removeWheelDialogViewModel = removeWheelDialogViewModel
+            )
+        }
+
+        // Click on the wheel item
+        composeTestRule.onNodeWithText(wheelName).performClick()
+
+        // Verify that an intent to SpinnerActivity was sent with the correct extra
+        intended(
+            allOf(
+                hasComponent(SpinnerActivity::class.java.name),
+                hasExtra("WHEEL_NAME", wheelName)
+            )
+        )
     }
 }

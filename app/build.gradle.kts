@@ -70,6 +70,7 @@ dependencies {
     // UI Testing (AndroidTest)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.espresso.intents)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.uiautomator)
     androidTestImplementation(libs.mockito.android) // Use mockito-android for instrumented tests
